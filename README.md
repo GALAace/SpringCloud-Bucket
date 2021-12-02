@@ -125,10 +125,12 @@ management:
 
 1.这里新建一个仓库[SpringCloud-ConfigCenter](https://gitee.com/GALAace/spring-cloud-config-center)存放配置文件，文件命名规则为
 
+> ```
 > /{name}-{profiles}.properties
 > /{name}-{profiles}.yml
 > /{name}-{profiles}.json
 > /{label}/{name}-{profiles}.yml
+> ```
 >
 > name 服务名称
 >
