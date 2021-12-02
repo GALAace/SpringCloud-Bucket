@@ -9,19 +9,24 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.gala</groupId>
-    <artifactId>eureka-server-1</artifactId>
+    <artifactId>config-center</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>eureka-server-1</name>
-    <description>eureka-server</description>
+    <name>config-center</name>
+    <description>config-center</description>
     <properties>
         <java.version>1.8</java.version>
         <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
     </properties>
     <dependencies>
-        <!--eureka-server-->
+        <!--eureka-client-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <!--config-server-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
         </dependency>
 
         <dependency>
