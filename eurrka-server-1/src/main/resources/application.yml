@@ -3,6 +3,7 @@ server:
 
 spring:
   application:
+    #\u5E94\u7528\u540D\u79F0 \u5176\u4ED6\u670D\u52A1\u5728Eureka\u4E2D\u6839\u636E\u8FD9\u4E2A\u540D\u5B57\u627E\u5230\u5BF9\u5E94\u7684\u670D\u52A1
     name: eureka-server
 
 eureka:
@@ -17,8 +18,3 @@ eureka:
     #\u8BBE\u7F6E\u670D\u52A1\u6CE8\u518C\u4E2D\u5FC3\u7684URL\uFF0C\u7528\u4E8Eclient\u548Cserver\u7AEF\u4EA4\u6D41
     service-url:
       defaultZone: http://euk2.com:7902/eureka/
-
-management:
-  endpoint:
-    shutdown:
-      enabled: true
