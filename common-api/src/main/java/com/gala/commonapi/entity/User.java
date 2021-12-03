@@ -19,4 +19,11 @@ public class User {
 
     private String password;
 
+    public User(Long id, String account, String username, String password) {
+        this.id = id;
+        this.account = account;
+        this.username = username;
+        this.password = password;
+    }
+
 }

@@ -21,4 +21,10 @@ public class Order {
 
     private Long userId;
 
+    public Order(Long id, String orderNumber, BigDecimal totalPrice, Long userId) {
+        this.id = id;
+        this.orderNumber = orderNumber;
+        this.totalPrice = totalPrice;
+        this.userId = userId;
+    }
 }
