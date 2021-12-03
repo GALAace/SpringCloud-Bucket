@@ -28,7 +28,7 @@
 
 ### 详细搭建步骤
 
-#### Eureka
+#### Eureka-Server
 
 0.因为是在一台pc上做集群，所以在开始前需要修改一下hosts文件
 
@@ -55,6 +55,7 @@ server:
 
 spring:
   application:
+    #应用名称 其他服务在Eureka中根据这个名字找到对应的服务
     name: eureka-server
 
 eureka:
@@ -69,14 +70,9 @@ eureka:
     #设置服务注册中心的URL，用于client和server端交流
     service-url:
       defaultZone: http://euk2.com:7902/eureka/
-
-management:
-  endpoint:
-    shutdown:
-      enabled: true
 ```
 
-3.启动类EurekaServer1Application增加注解
+3.启动类EurekaServerApplication增加注解
 
 ```java
 @EnableEurekaServer
@@ -90,6 +86,7 @@ server:
 
 spring:
   application:
+    #应用名称 其他服务在Eureka中根据这个名字找到对应的服务
     name: eureka-server
 
 eureka:
@@ -104,11 +101,6 @@ eureka:
     #设置服务注册中心的URL，用于client和server端交流
     service-url:
       defaultZone: http://euk1.com:7901/eureka/
-
-management:
-  endpoint:
-    shutdown:
-      enabled: true
 ```
 
 5.分别启动两个工程，访问 http://localhost:7901/或http://localhost:7902/得到下图则配置成功
@@ -184,4 +176,197 @@ eureka:
 ![SpringCloudConfig测试](./doc_img/SpringCloudConfig测试.jpg)
 
 
+
+#### 服务
+
+服务分为业务服务（service-server）下面称Consumer，和具体执行功能的服务称Provider（microservice-xxx）；
+
+由Consumer作为客户端调用作为服务端的Provider，他们都需要注册在Eureka上；
+
+使用声明式服务调用，Provider方提供公用API包，Feign通过SpringMVC的注解来加载URI
+
+所有我们先创建一个项目作为API
+
+##### Api
+
+1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
+
+```xml
+<!--web 提供web服务-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<!--lombok 简化代码 （可选）-->
+<dependency>
+	<groupId>org.projectlombok</groupId>
+	<artifactId>lombok</artifactId>
+</dependency>
+```
+
+注意：SpringBoot默认打build配置可能引起打包后其他项目无法依赖的问题，需要修改pom.xml
+
+```xml
+	<build>
+        <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+        </plugins>
+    </build>
+```
+
+2.创建实体和API interface，具体代码参考[common-api](https://github.com/GALAace/SpringCloud-Bucket/tree/main/common-api)
+
+3.使用maven install打包到本地仓库，待Consumer和Provider使用
+
+##### Provider
+
+这里举例的4个Provider结构都是类似的，这里以microservice-user-1为例
+
+1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
+
+```xml
+<!--eureka-client 注册eureka-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<!--config-client 连接配置中心-->
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-config-client</artifactId>
+</dependency>
+
+<!--sleuth 链路追踪-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+</dependency>
+
+<!--zipkin 链路追踪 UI-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-zipkin</artifactId>
+</dependency>
+
+<!--actuator 健康监控-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+
+<!--SpringBootAdmin 健康监控 UI-->
+<dependency>
+    <groupId>de.codecentric</groupId>
+    <artifactId>spring-boot-admin-starter-client</artifactId>
+    <version>2.2.1</version>
+</dependency>
+
+<!--自定义API-->
+<dependency>
+    <groupId>com.gala</groupId>
+    <artifactId>common-api</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+
+<!--lombok 简化代码 （可选）-->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+2.修改application.yml
+
+```java
+server:
+    port: 9000
+```
+
+3.新建一个bootstrap.yml
+
+bootstrapd加载的优先级比application高，我们在这里配置注册中心和配置中心的信息
+
+```yaml
+eureka:
+  client:
+    service-url:
+      defaultZone: http://euk1.com:7901/eureka/
+
+spring:
+  application:
+    name: microservice-user
+  cloud:
+    config:
+      discovery:
+        #通过注册中心查找配置中心
+        enabled: true
+        #配置中心的服务id
+        service-id: config-center
+      #环境
+      profile: dev
+      #分支
+      label: master
+```
+
+2.新建一个UserController，实现引入的自定义依赖common-api的UserApi接口
+
+```java
+@RestController
+public class UserController implements UserApi {
+    @Override
+    public List<User> list() {
+        //实现自己的业务
+        return null;
+    }
+
+    @Override
+    public String save(User user) {
+        //实现自己的业务
+        return null;
+    }
+}
+```
+
+
+
+##### Consumer
+
+1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
+
+```xml
+<!--web 提供web服务-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<!--eureka-client 注册eureka-->
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+<!--openfeign 远程调用-->
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+<!--config-client 连接配置中心-->
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-config-client</artifactId>
+</dependency>
+<!--actuator 健康监控-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
 
