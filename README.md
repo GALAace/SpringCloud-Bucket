@@ -1,6 +1,4 @@
-# SpringCloud-Bucket
 # SpringCloud技术栈全家桶Demo
-
 ## 项目介绍
 
 ### 包含组件：
@@ -544,7 +542,7 @@ microservice-user: #微服务id
 2.修改microservice-user-1的UserController，microservice-user-2不变用于验证
 
 ```java
-	/**
+/**
      * 返回服务端口号
      */
     @GetMapping("/port")
@@ -561,7 +559,82 @@ microservice-user: #微服务id
 
 3.访问http://localhost:8000/port，当访问到microservice-user-1时，也就是9000端口服务时，在等待6秒后会重试一次，
 
-可以看到microservice-user-1的控制台会打印2次“调用9000端口，进入sleep”，但此时9000服务依然超时，ribbon回去调用9001然后页面响应“调用端口:9001”
+可以看到microservice-user-1的控制台会打印2次“调用9000端口，进入sleep”，但此时9000服务依然超时，ribbon会去调用9001然后页面响应“调用端口:9001”
 
+##### Hystrix
 
+1.修改配置文件,启用hystrix
+
+```yaml
+#feign
+feign:
+  hystrix:
+    enabled: true
+```
+
+2.创建一个WebError类，实现FallbackFactory,对每个接口编写对应的处理方法
+
+```java
+@Component
+public class WebError implements FallbackFactory<UserService> {
+    @Override
+    public UserService create(Throwable throwable) {
+
+        return new UserService() {
+            @Override
+            public String port() {
+                System.out.println(throwable);
+                if (throwable instanceof HystrixTimeoutException) {
+                    System.out.println("InternalServerError");
+                    return "远程服务报错";
+                } else if (throwable instanceof RuntimeException) {
+                    return "请求时异常：" + throwable;
+                } else {
+                    return null;
+                }
+            }
+
+            @Override
+            public List<User> list() {
+                return null;
+            }
+
+            @Override
+            public String save(User user) {
+                return null;
+            }
+        };
+    }
+}
+```
+
+3.修改UserService的注解
+
+```java
+@FeignClient(name = "microservice-user",fallbackFactory = WebError.class)
+```
+
+4.启动类ServiceServerApplication增加注解
+
+```java
+@EnableHystrixDashboard
+```
+
+5.访问http://localhost:8000/actuator/hystrix.stream查看监控端点，如果报错则在启动类增加一个Bean
+
+```java
+//解决/actuator/hystrix.stream无法访问问题
+    @Bean
+    public ServletRegistrationBean hystrixMetricsStreamServlet() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+        registration.addUrlMappings("/actuator/hystrix.stream");
+        return registration;
+    }
+```
+
+6.访问http://localhost:8000/hystrix查看图形化页面
+
+![hystrix](./doc_img/hystrix.jpg)
+
+#### 网关
 
