@@ -1,2 +1,17 @@
 server:
   port: 8000
+
+#ribbon
+microservice-user: #\u5FAE\u670D\u52A1id
+  ribbon:
+#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule #\u968F\u673A\u7B56\u7565
+    #\u8FDE\u63A5\u8D85\u65F6\u65F6\u95F4(ms)
+    ConnectTimeout: 1000
+    #\u4E1A\u52A1\u903B\u8F91\u8D85\u65F6\u65F6\u95F4(ms)
+    ReadTimeout: 5000
+    #\u540C\u4E00\u53F0\u5B9E\u4F8B\u6700\u5927\u91CD\u8BD5\u6B21\u6570,\u4E0D\u5305\u62EC\u9996\u6B21\u8C03\u7528
+    MaxAutoRetries: 1
+    #\u91CD\u8BD5\u8D1F\u8F7D\u5747\u8861\u5176\u4ED6\u7684\u5B9E\u4F8B\u6700\u5927\u91CD\u8BD5\u6B21\u6570,\u4E0D\u5305\u62EC\u9996\u6B21\u8C03\u7528
+    MaxAutoRetriesNextServer: 1
+    #\u662F\u5426\u6240\u6709\u64CD\u4F5C\u90FD\u91CD\u8BD5
+    OkToRetryOnAllOperations: false

@@ -47,6 +47,29 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!--SpringBootAdmin 健康监控 UI-->
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>spring-boot-admin-starter-client</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+
+        <!--hystrix 断路器-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>
+                spring-cloud-starter-netflix-hystrix
+            </artifactId>
+        </dependency>
+
+        <!--hystrix-dashboard 熔断监控 UI-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>
+                spring-cloud-starter-netflix-hystrix-dashboard
+            </artifactId>
+        </dependency>
+
         <!--自定义API-->
         <dependency>
             <groupId>com.gala</groupId>

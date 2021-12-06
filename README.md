@@ -1,9 +1,9 @@
 # SpringCloud-Bucket
-## SpringCloud技术栈全家桶Demo
+# SpringCloud技术栈全家桶Demo
 
-### 项目介绍
+## 项目介绍
 
-#### 包含组件：
+### 包含组件：
 
 - 注册中心：Eureka
 - 远程调用：Feign
@@ -14,21 +14,21 @@
 - 链路追踪：Sleuth、Zipkin
 - 健康检查：SpringBootAdmin
 
-#### 项目结构：
+### 项目结构：
 
 <img src="./doc_img/项目结构.jpg" alt="项目结构" style="zoom: 50%;" />
 
 
 
-### 运行
+## 运行
 
 //todo
 
 
 
-### 详细搭建步骤
+## 详细搭建步骤
 
-#### Eureka-Server
+### Eureka-Server
 
 0.因为是在一台pc上做集群，所以在开始前需要修改一下hosts文件
 
@@ -107,7 +107,7 @@ eureka:
 
 ![Eureka](./doc_img/Eureka.jpg)
 
-#### 配置中心
+### 配置中心
 
 在单体应用，配置写在配置文件中，没有什么大问题。如果要切换环境 可以切换不同的profile，但在微服务中：
 
@@ -177,7 +177,7 @@ eureka:
 
 
 
-#### 服务
+### 服务
 
 服务分为业务服务（service-server）下面称Consumer，和具体执行功能的服务称Provider（microservice-xxx）；
 
@@ -187,7 +187,7 @@ eureka:
 
 所有我们先创建一个项目作为API
 
-##### Api
+#### Api
 
 1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
 
@@ -225,7 +225,7 @@ eureka:
 
 3.使用maven install打包到本地仓库，待Consumer和Provider使用
 
-##### Provider
+#### Provider
 
 这里举例的4个Provider结构都是类似的，这里以microservice-user-1为例
 
@@ -336,37 +336,232 @@ public class UserController implements UserApi {
 }
 ```
 
-
-
-##### Consumer
+#### Consumer
 
 1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
 
 ```xml
-<!--web 提供web服务-->
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-web</artifactId>
-</dependency>
 <!--eureka-client 注册eureka-->
 <dependency>
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 </dependency>
+
 <!--openfeign 远程调用-->
 <dependency>
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-starter-openfeign</artifactId>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
 </dependency>
+
 <!--config-client 连接配置中心-->
 <dependency>
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-config-client</artifactId>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-config-client</artifactId>
 </dependency>
+
 <!--actuator 健康监控-->
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-actuator</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+
+<!--SpringBootAdmin 健康监控 UI-->
+<dependency>
+    <groupId>de.codecentric</groupId>
+    <artifactId>spring-boot-admin-starter-client</artifactId>
+    <version>2.2.1</version>
+</dependency>
+
+<!--hystrix 断路器-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>
+        spring-cloud-starter-netflix-hystrix
+    </artifactId>
+</dependency>
+
+<!--hystrix-dashboard 熔断监控 UI-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>
+        spring-cloud-starter-netflix-hystrix-dashboard
+    </artifactId>
+</dependency>
+
+<!--自定义API-->
+<dependency>
+    <groupId>com.gala</groupId>
+    <artifactId>common-api</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+
+<!--lombok 简化代码 （可选）-->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <optional>true</optional>
 </dependency>
 ```
+
+##### Feign
+
+1.启动类ConfigCenterApplication增加注解
+
+```java
+@EnableFeignClients
+```
+
+2.创建接口，增加注解@FeignClient(name = "{微服务id}") 
+
+```java
+@Service
+@FeignClient(name = "microservice-user")
+public interface UserService extends UserApi {
+    
+}
+```
+
+3.创建Controller，引入UserService
+
+```java
+@RestController
+public class DemoController {
+
+    @Autowired
+    UserService userService;
+
+    @GetMapping("/list")
+    public List<User> list(){
+        return userService.list();
+    }
+
+}
+```
+
+4.访问http://localhost:8000/list 可以看到Provider端写的测试数据
+
+![list](./doc_img/list.jpg)
+
+##### Ribbon
+
+###### 负载均衡
+
+默认的负载均衡策略是ZoneAvoidanceRule（区域权衡策略）：复合判断Server所在区域的性能和Server的可用性，轮询选择服务器。
+
+除此以外还有：
+
+BestAvailableRule（最低并发策略）：会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择一个并发量最小的服务。逐个找服务，如果断路器打开，则忽略。
+
+RoundRobinRule（轮询策略）：以简单轮询选择一个服务器。按顺序循环选择一个server。
+
+RandomRule（随机策略）：随机选择一个服务器。
+
+AvailabilityFilteringRule（可用过滤策略）：会先过滤掉多次访问故障而处于断路器跳闸状态的服务和过滤并发的连接数量超过阀值得服务，然后对剩余的服务列表安装轮询策略进行访问。
+
+WeightedResponseTimeRule（响应时间加权策略）：据平均响应时间计算所有的服务的权重，响应时间越快服务权重越大，容易被选中的概率就越高。刚启动时，如果统计信息不中，则使用RoundRobinRule(轮询)策略，等统计的信息足够了会自动的切换到WeightedResponseTimeRule。响应时间长，权重低，被选择的概率低。反之，同样道理。此策略综合了各种因素（网络，磁盘，IO等），这些因素直接影响响应时间。
+
+RetryRule（重试策略）：先按照RoundRobinRule(轮询)的策略获取服务，如果获取的服务失败则在指定的时间会进行重试，进行获取可用的服务。如多次获取某个服务失败，就不会再次获取该服务。主要是在一个时间段内，如果选择一个服务不成功，就继续找可用的服务，直到超时。
+
+切换负载均衡策
+
+注解方式
+
+```java
+@Bean
+public IRule myRule(){
+	//return new RoundRobinRule();
+	//return new RandomRule();
+	return new RetryRule(); 
+}
+```
+
+配置文件方式(优先级高于注解)
+
+```yaml
+microservice-user: #微服务id
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule #随机策略
+```
+
+验证
+
+1.在microservice-user-1和microservice-user-2的UserController中增加一个方法，返回当前服务的端口号
+
+```java
+@Value("${server.port}")
+    String port;
+    
+	/**
+     * 返回服务端口号
+     */
+    @GetMapping("/port")
+    public String port() {
+        return "调用端口:" + port;
+    }
+```
+
+2.在service-server的UserService中增加方法
+
+```java
+@GetMapping("/port")
+    String port();
+```
+
+3.在service-server的DemoController中增加方法
+
+```java
+@GetMapping("/port")
+    public String port(){
+        return userService.port();
+    }
+```
+
+4.多次访问http://localhost:8000/port查看响应结果
+
+###### 超时重试
+
+Feign默认支持Ribbon；Ribbon的重试机制和Feign的重试机制有冲突，所以源码中默认关闭Feign的重试机制,使用Ribbon的重试机制
+
+1.修改service-server的配置文件
+
+```yaml
+#ribbon
+microservice-user: #微服务id
+  ribbon:
+#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule #随机策略
+    #连接超时时间(ms)
+    ConnectTimeout: 1000
+    #业务逻辑超时时间(ms)
+    ReadTimeout: 5000
+    #同一台实例最大重试次数,不包括首次调用
+    MaxAutoRetries: 1
+    #重试负载均衡其他的实例最大重试次数,不包括首次调用
+    MaxAutoRetriesNextServer: 1
+    #是否所有操作都重试
+    OkToRetryOnAllOperations: false
+```
+
+2.修改microservice-user-1的UserController，microservice-user-2不变用于验证
+
+```java
+	/**
+     * 返回服务端口号
+     */
+    @GetMapping("/port")
+    public String port() {
+        try {
+            System.out.println("调用" + port + "端口，进入sleep");
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return "调用端口:" + port;
+    }
+```
+
+3.访问http://localhost:8000/port，当访问到microservice-user-1时，也就是9000端口服务时，在等待6秒后会重试一次，
+
+可以看到microservice-user-1的控制台会打印2次“调用9000端口，进入sleep”，但此时9000服务依然超时，ribbon回去调用9001然后页面响应“调用端口:9001”
+
+
 

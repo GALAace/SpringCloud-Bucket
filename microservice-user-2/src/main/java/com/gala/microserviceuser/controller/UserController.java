@@ -21,15 +21,6 @@ public class UserController implements UserApi {
     @Value("${server.port}")
     String port;
 
-
-    /**
-     * 服务端口号
-     */
-    @GetMapping("/port")
-    public String port() {
-        return port;
-    }
-
     @Override
     public List<User> list() {
         //实现自己的业务
@@ -40,6 +31,7 @@ public class UserController implements UserApi {
         userList.add(user1);
         userList.add(user2);
         userList.add(user3);
+        System.out.println(port);
         return userList;
     }
 
@@ -47,5 +39,13 @@ public class UserController implements UserApi {
     public String save(User user) {
         //实现自己的业务
         return "ok";
+    }
+
+    /**
+     * 服务端口号
+     */
+    @GetMapping("/port")
+    public String port() {
+        return "调用端口:" + port;
     }
 }
