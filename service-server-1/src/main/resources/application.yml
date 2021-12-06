@@ -15,3 +15,8 @@ microservice-user: #\u5FAE\u670D\u52A1id
     MaxAutoRetriesNextServer: 1
     #\u662F\u5426\u6240\u6709\u64CD\u4F5C\u90FD\u91CD\u8BD5
     OkToRetryOnAllOperations: false
+
+#feign
+      feign:
+        hystrix:
+          enabled: true
