@@ -1,0 +1,20 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://euk1.com:7901/eureka/
+
+spring:
+  application:
+    name: service-server
+  cloud:
+    config:
+      discovery:
+        #通过注册中心查找配置中心
+        enabled: true
+        #配置中心的服务id
+        service-id: config-center
+      #环境
+      profile: dev
+      #分支
+      label: master
+
