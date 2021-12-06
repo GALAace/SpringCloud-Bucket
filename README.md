@@ -1,4 +1,7 @@
 # SpringCloud技术栈全家桶Demo
+
+Eureka、Feign、Ribbon、Hystrix、Zuul、SpringCloud Config、Sleuth、Zipkin、SpringBootAdmin
+
 ## 项目介绍
 
 ### 包含组件：
@@ -10,7 +13,7 @@
 - 网关：Zuul
 - 配置中心：SpringCloud Config
 - 链路追踪：Sleuth、Zipkin
-- 健康检查：SpringBootAdmin
+- 健康监控：SpringBootAdmin
 
 ### 项目结构：
 
@@ -26,7 +29,7 @@
 
 ## 详细搭建步骤
 
-### Eureka-Server
+### 注册中心（Eureka）
 
 0.因为是在一台pc上做集群，所以在开始前需要修改一下hosts文件
 
@@ -105,7 +108,7 @@ eureka:
 
 ![Eureka](./doc_img/Eureka.jpg)
 
-### 配置中心
+### 配置中心（SpringCloud Config）
 
 在单体应用，配置写在配置文件中，没有什么大问题。如果要切换环境 可以切换不同的profile，但在微服务中：
 
@@ -401,7 +404,7 @@ public class UserController implements UserApi {
 </dependency>
 ```
 
-##### Feign
+##### 远程调用（Feign）
 
 1.启动类ConfigCenterApplication增加注解
 
@@ -561,7 +564,7 @@ microservice-user: #微服务id
 
 可以看到microservice-user-1的控制台会打印2次“调用9000端口，进入sleep”，但此时9000服务依然超时，ribbon会去调用9001然后页面响应“调用端口:9001”
 
-##### Hystrix
+##### 断路器（Hystrix）
 
 1.修改配置文件,启用hystrix
 
@@ -636,5 +639,56 @@ public class WebError implements FallbackFactory<UserService> {
 
 ![hystrix](./doc_img/hystrix.jpg)
 
-#### 网关
+#### 网关（Zuul）
 
+zuul默认集成了：ribbon和hystrix
+
+1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
+
+```xml
+<!--eureka-client 注册eureka-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<!--zuul 网关-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+</dependency>
+```
+
+2.修改配置文件
+
+```yaml
+server:
+  port: 80
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://euk1.com:7901/eureka/
+
+spring:
+  application:
+    name: zuulserver
+```
+
+3.启动类增加注解
+
+```java
+@EnableZuulProxy
+```
+
+4.访问 http://{ip}:{端口}/{服务id}/{接口uri} 如 http://localhost/service-server/list
+
+![zuul](./doc_img/zuul.jpg)
+
+#### 链路追踪（Sleuth、Zipkin）
+
+
+
+
+
+#### 健康监控（SpringBootAdmin）
