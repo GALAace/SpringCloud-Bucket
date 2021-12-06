@@ -1,6 +1,4 @@
-# SpringCloud技术栈全家桶Demo
-
-Eureka、Feign、Ribbon、Hystrix、Zuul、SpringCloud Config、Sleuth、Zipkin、SpringBootAdmin
+# SpringCloud技术栈全家桶DemoEureka、Feign、Ribbon、Hystrix、Zuul、SpringCloud Config、Sleuth、Zipkin、SpringBootAdmin
 
 ## 项目介绍
 
