@@ -685,8 +685,149 @@ spring:
 
 #### 链路追踪（Sleuth、Zipkin）
 
+如果能跟踪每个请求，中间请求经过哪些微服务，请求耗时，网络延迟，业务逻辑耗时等。我们就能更好地分析系统瓶颈、解决系统问题。因此链路跟踪很重要
 
+##### Sleuth
+
+Sleuth是Spring cloud的分布式跟踪解决方案。
+
+1. span(跨度)，基本工作单元。一次链路调用，创建一个span，
+
+   span用一个64位id唯一标识。包括：id，描述，时间戳事件，spanId,span父id。
+
+   span被启动和停止时，记录了时间信息，初始化span叫：root span，它的span id和trace id相等。
+
+2. trace(跟踪)，一组共享“root span”的span组成的树状结构 称为 trace，trace也有一个64位ID，trace中所有span共享一个trace id。类似于一颗 span 树。
+
+3. annotation（标签），annotation用来记录事件的存在，其中，核心annotation用来定义请求的开始和结束。
+
+   - CS(Client Send客户端发起请求)。客户端发起请求描述了span开始。
+   - SR(Server Received服务端接到请求)。服务端获得请求并准备处理它。SR-CS=网络延迟。
+   - SS（Server Send服务器端处理完成，并将结果发送给客户端）。表示服务器完成请求处理，响应客户端时。SS-SR=服务器处理请求的时间。
+   - CR（Client Received 客户端接受服务端信息）。span结束的标识。客户端接收到服务器的响应。CR-CS=客户端发出请求到服务器响应的总时间。
+
+其实数据结构是一颗树，从root span 开始。
+
+使用：
+
+1.每个需要监控的系统都需要引入依赖
+
+```xml
+<!--sleuth 链路追踪-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+</dependency>
+```
+
+2.在zuul-server、service-server，microservice里都加入依赖,修改一下日志配置
+
+```yaml
+logging:
+  level:
+    root: INFO
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.cloud.sleuth: DEBUG
+```
+
+3.访问一次http://localhost/service-server/list接口，查看日志
+
+zuul-server:
+
+```java
+2021-12-07 11:53:11.519 DEBUG [zuulserver,6228db7f8ae94ab0,6228db7f8ae94ab0,false] 14644 --- [p-nio-80-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/service-server/list", parameters={}
+2021-12-07 11:53:12.023 DEBUG [zuulserver,6228db7f8ae94ab0,6228db7f8ae94ab0,false] 14644 --- [p-nio-80-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+```
+
+service-server:
+
+```java
+2021-12-07 11:53:11.867 DEBUG [service-server,6228db7f8ae94ab0,9b859b488d9eff12,false] 17912 --- [oservice-user-1] o.s.c.s.i.async.SleuthContextListener    : Context refreshed or closed [org.springframework.context.event.ContextRefreshedEvent[source=SpringClientFactory-microservice-user, started on Tue Dec 07 11:53:11 CST 2021, parent: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@31e72cbc]]
+2021-12-07 11:53:11.877 DEBUG [service-server,6228db7f8ae94ab0,9b859b488d9eff12,false] 17912 --- [oservice-user-1] o.s.c.s.i.w.c.f.LazyTracingFeignClient   : Sending a request via tracing feign client [org.springframework.cloud.sleuth.instrument.web.client.feign.TracingFeignClient@38724594] and the delegate [feign.Client$Default@3767e736]
+```
+
+microservice-user:
+
+```java
+2021-12-07 11:53:11.963 DEBUG [microservice-user,6228db7f8ae94ab0,292c12ffaa37d7de,false] 9976 --- [nio-9000-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/list", parameters={}
+2021-12-07 11:53:11.991 DEBUG [microservice-user,6228db7f8ae94ab0,292c12ffaa37d7de,false] 9976 --- [nio-9000-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+```
+
+可以看出traceId， 是一样的
+
+```
+ [服务名称，traceId（一条请求调用链中 唯一ID），spanID（基本的工作单元，获取数据等），是否让zipkin收集和展示此信息]
+```
+
+##### Zipkin
+
+Sleuth的日志已经能将调用链路等信息打印出来，但看起来还是比较费事的，我们使用zipkin收集系统的时序数据，从而追踪微服务架构中系统延时等问题。还有一个友好的界面。
+
+原理：
+
+sleuth收集跟踪信息通过http请求发送给zipkin server，zipkin将跟踪信息存储，以及提供RESTful API接口，zipkin ui通过调用api进行数据展示。
+
+默认内存存储，可以用mysql，ES等存储。
+
+使用：
+
+1.每个需要监控的系统都需要引入依赖
+
+```xml
+<!--zipkin 链路追踪 UI-->
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-zipkin</artifactId>
+</dependency>
+```
+
+2.每个需要监控的系统都需要修改配置文件
+
+```yaml
+spring:
+  #zipkin
+  zipkin:
+    base-url: http://localhost:9411/
+    #采样比例1
+  sleuth:
+    sampler:
+      rate: 1  
+```
+
+3.下载、启动zipkin
+
+​	Windows：
+
+​		1.访问官网https://zipkin.io/ 
+
+​		2.点击[Quickstart](https://zipkin.io/pages/quickstart.html)，
+
+​		3.点击[latest release](https://search.maven.org/remote_content?g=io.zipkin&a=zipkin-server&v=LATEST&c=exec)下载jar包
+
+​		4.用cmd启动
+
+​	Liunx：
+
+```shell
+curl -sSL https://zipkin.io/quickstart.sh | bash -s
+java -jar zipkin.jar
+```
+
+​	Docker：
+
+```shell
+docker run -d -p 9411:9411 openzipkin/zipkin
+```
+
+下图为Windows启动后的截图
+
+![zipkin](./doc_img/zipkin.jpg)
+
+4.请求一次http://localhost/service-server/list接口，然后访问http://localhost:9411/，可以查看调用链路、依赖等等信息
+
+![zipkin_ui](./doc_img/zipkin_ui.jpg)
 
 
 
 #### 健康监控（SpringBootAdmin）
+

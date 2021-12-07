@@ -1,3 +1,8 @@
 server:
     port: 9000
 
+logging:
+    level:
+        root: INFO
+        org.springframework.web.servlet.DispatcherServlet: DEBUG
+        org.springframework.cloud.sleuth: DEBUG

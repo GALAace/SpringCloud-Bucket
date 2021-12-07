@@ -70,6 +70,18 @@
             </artifactId>
         </dependency>
 
+        <!--sleuth 链路追踪-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-sleuth</artifactId>
+        </dependency>
+
+        <!--zipkin 链路追踪 UI-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-zipkin</artifactId>
+        </dependency>
+
         <!--自定义API-->
         <dependency>
             <groupId>com.gala</groupId>
