@@ -1,0 +1,6 @@
+server:
+  port: 81
+
+spring:
+  application:
+    name: admin-server

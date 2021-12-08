@@ -3,18 +3,33 @@ server:
 
 spring:
   application:
-    #\u5E94\u7528\u540D\u79F0 \u5176\u4ED6\u670D\u52A1\u5728Eureka\u4E2D\u6839\u636E\u8FD9\u4E2A\u540D\u5B57\u627E\u5230\u5BF9\u5E94\u7684\u670D\u52A1
+    #应用名称 其他服务在Eureka中根据这个名字找到对应的服务
     name: eureka-server
+  boot:
+    admin:
+      client:
+        #SpringBootAdmin 地址
+        url: http://localhost:81
 
 eureka:
   instance:
-    #\u4E3B\u673A\u540D
+    #主机名
     hostname: euk2.com
   client:
-    #\u662F\u5426\u5C06\u81EA\u5DF1\u6CE8\u518C\u5230Eureka Server,\u9ED8\u8BA4\u4E3Atrue\uFF0C\u8868\u660E\u8BE5\u670D\u52A1\u4F1A\u5411eureka\u6CE8\u518C\u81EA\u5DF1\u7684\u4FE1\u606F,\u5355\u8282\u70B9\u5219false
+    #是否将自己注册到Eureka Server,默认为true，表明该服务会向eureka注册自己的信息,单节点则false
     register-with-eureka: true
-    #\u662F\u5426\u4ECEEureka server\u83B7\u53D6\u6CE8\u518C\u4FE1\u606F\uFF0C\u7531\u4E8E\u591A\u8282\u70B9\uFF0C\u9700\u8981\u540C\u6B65\u5176\u4ED6\u8282\u70B9\u6570\u636E\uFF0C\u7528true,\u5355\u8282\u70B9\u5219false
+    #是否从Eureka server获取注册信息，由于多节点，需要同步其他节点数据，用true,单节点则false
     fetch-registry: true
-    #\u8BBE\u7F6E\u670D\u52A1\u6CE8\u518C\u4E2D\u5FC3\u7684URL\uFF0C\u7528\u4E8Eclient\u548Cserver\u7AEF\u4EA4\u6D41
+    #设置服务注册中心的URL，用于client和server端交流
     service-url:
       defaultZone: http://euk1.com:7901/eureka/
+
+#监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always

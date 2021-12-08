@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 
 @Service
-@FeignClient(name = "microservice-user",fallbackFactory = WebError.class)
+@FeignClient(name = "microservice-user", fallbackFactory = WebError.class)
 public interface UserService extends UserApi {
 
     @GetMapping("/port")

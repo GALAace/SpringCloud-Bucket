@@ -24,12 +24,12 @@ public class DemoController {
     UserService userService;
 
     @GetMapping("/list")
-    public List<User> list(){
+    public List<User> list() {
         return userService.list();
     }
 
     @GetMapping("/port")
-    public String port(){
+    public String port() {
         return userService.port();
     }
 

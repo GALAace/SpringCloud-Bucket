@@ -8,13 +8,30 @@ spring:
     config:
       server:
         git:
-          uri: https://gitee.com/GALAace/spring-cloud-config-center.git #\u914D\u7F6E\u6587\u4EF6\u6240\u5728\u7684Git\u4ED3\u5E93\u5730\u5740
-          default-label: master #\u914D\u7F6E\u6587\u4EF6\u5206\u652F
-          search-paths: configs  #\u914D\u7F6E\u6587\u4EF6\u6240\u5728\u76EE\u5F55
-#          username: Git\u8D26\u53F7
-#          password: Git\u5BC6\u7801
+          uri: https://gitee.com/GALAace/spring-cloud-config-center.git #配置文件所在的Git仓库地址
+          default-label: master #配置文件分支
+          search-paths: configs  #配置文件所在目录
+#          username: Git账号
+#          password: Git密码
+  boot:
+    admin:
+      client:
+        #SpringBootAdmin 地址
+        url: http://localhost:81
+
 
 eureka:
   client:
     service-url:
       defaultZone: http://euk1.com:7901/eureka/
+
+
+#监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always

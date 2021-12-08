@@ -1,8 +1,2 @@
 server:
-    port: 9001
-
-logging:
-    level:
-        root: INFO
-        org.springframework.web.servlet.DispatcherServlet: DEBUG
-        org.springframework.cloud.sleuth: DEBUG
+  port: 9001

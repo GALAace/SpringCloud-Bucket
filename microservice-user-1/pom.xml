@@ -48,7 +48,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!--SpringBootAdmin 健康监控 UI-->
+        <!--SpringBootAdmin 健康监控-->
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>

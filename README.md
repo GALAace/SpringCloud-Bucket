@@ -827,7 +827,70 @@ docker run -d -p 9411:9411 openzipkin/zipkin
 
 ![zipkin_ui](./doc_img/zipkin_ui.jpg)
 
-
-
 #### 健康监控（SpringBootAdmin）
 
+1.使用Spring Initializr创建一个SpringBoot工程，引入依赖
+
+```xml
+<!-- Admin-server 服务 -->
+<dependency>
+    <groupId>de.codecentric</groupId>
+    <artifactId>spring-boot-admin-starter-server</artifactId>
+</dependency>
+<!-- Admin UI -->
+<dependency>
+    <groupId>de.codecentric</groupId>
+    <artifactId>spring-boot-admin-server-ui</artifactId>
+</dependency>
+```
+
+2.启动类增加注解
+
+```
+@EnableAdminServer
+```
+
+3.在需要监控的微服务上添加依赖
+
+```xml
+<!-- Admin-client -->
+<dependency>
+    <groupId>de.codecentric</groupId>
+    <artifactId>spring-boot-admin-starter-client</artifactId>
+    <version>2.2.1</version>
+</dependency>
+<!--actuator 健康监控-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+4.修改需要监控的微服务的配置（可以将这部分配置放在配置中心统一管理）
+
+```yaml
+spring:
+  boot:
+    admin:
+      client:
+        #SpringBootAdmin 地址
+        url: http://localhost:81
+
+#监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+```
+
+5.访问http://localhost:81 查看监控信息
+
+![admin_wallboard](./doc_img/admin_wallboard.jpg)
+
+![admin_details](./doc_img/admin_details.jpg)
+
+同时也可以配置邮箱、钉钉等服务上下线通知

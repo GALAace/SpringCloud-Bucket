@@ -12,14 +12,30 @@ spring:
   #zipkin
   zipkin:
     base-url: http://localhost:9411/
-  #\u91C7\u6837\u6BD4\u4F8B1
+  #采样比例1
   sleuth:
     sampler:
       rate: 1
+  boot:
+    admin:
+      client:
+        #SpringBootAdmin 地址
+        url: http://localhost:81
 
+#日志
 logging:
   level:
     root: INFO
     org.springframework.web.servlet.DispatcherServlet: DEBUG
     org.springframework.cloud.sleuth: DEBUG
 
+
+#监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
